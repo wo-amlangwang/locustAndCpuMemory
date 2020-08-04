@@ -4,7 +4,9 @@ import time
 import os
 from queue import Queue
 from Utils.util import get_slash
+import logging
 
+logger = logger = logging.getLogger(__name__)
 
 def get_process_by_name(name: str):
     if name is None:
@@ -54,6 +56,7 @@ class ProcessMonitor(object):
             self.process = get_process_by_name(name)
         if self.process is None:
             raise Exception("Process Not found.")
+        self.process_name = self.process.name()
         self.csv_file = csv_file
         self.message_queue = Queue()
         self.can_continue = True
@@ -67,7 +70,9 @@ class ProcessMonitor(object):
                 time_stamp = time.time()
                 self.message_queue.put(f'{time_stamp},{cpu_usage},{memory_usage},{threads_number}')
         except psutil.NoSuchProcess:
-            self.can_continue = False
+            logger.warning(f"Monitored process terminated..")
+            logger.warning("Try to find it again.")
+            self.process = get_process_by_name(self.process_name)
 
     def stop(self):
         self.can_continue = False
@@ -83,7 +88,7 @@ class ProcessMonitor(object):
                 fd.write(f'{line}\n')
                 self.message_queue.task_done()
 
-    def run(self, collect_in_millisecond: float = 10, time_to_stop: int = None):
+    def run(self, collect_in_millisecond: float = 100, time_to_stop: int = None):
         threading.Thread(target=self.write_to_csv, daemon=True).start()
         if time_to_stop is not None:
             self.stop_late(time_to_stop)
