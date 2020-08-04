@@ -34,7 +34,7 @@ def function_wrapper(fun):
 
 def write_csv_header(csv_file: str):
     with open(csv_file, 'w') as fd:
-        header = 'Time_stamp,cpu_usage,memory_usage,threads_number\n'
+        header = 'Timestamp,Cpu Usage,Memory Usage,Threads Number\n'
         fd.write(header)
 
 
@@ -63,7 +63,7 @@ class ProcessMonitor(object):
             with self.process.oneshot():
                 cpu_usage = function_wrapper(self.process.cpu_percent)
                 memory_usage = function_wrapper(lambda: self.process.memory_full_info().uss)
-                threads_number = function_wrapper(self.process.threads)
+                threads_number = function_wrapper(self.process.num_threads)
                 time_stamp = time.time()
                 self.message_queue.put(f'{time_stamp},{cpu_usage},{memory_usage},{threads_number}')
         except psutil.NoSuchProcess:
