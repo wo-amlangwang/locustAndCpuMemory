@@ -75,14 +75,17 @@ if __name__ == '__main__':
                                          name=args.process_name,
                                          csv_file=get_default_process_monitor_csv_prefix(args.process_pid,
                                                                                          args.process_name))
+        process_monitor_task = threading.Thread(target=run_process_monitor, args=(process_monitor, args))
+        process_monitor_task.start()
     except:
+        logger.warning('Cannot find target process')
         logger.warning('Will not run process monitor')
+        process_monitor_task = None
         pass
     locust_task = threading.Thread(target=run_locust, args=(locust_runner, args))
-    process_monitor_task = threading.Thread(target=run_process_monitor, args=(process_monitor, args))
     locust_task.start()
-    process_monitor_task.start()
     locust_task.join()
-    process_monitor_task.join()
+    if process_monitor_task is not None:
+        process_monitor_task.join()
     logger.info("Load test done")
 
