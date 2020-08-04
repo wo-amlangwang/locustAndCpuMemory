@@ -92,6 +92,6 @@ class PlotCsv(object):
 
 
 if __name__ == '__main__':
-    options = create_options('../AutoDetect_stats_history.csv', '../test', '../AutoDetect_process.csv')
+    options = create_options('../node_stats_history.csv', '../test', '../node_process.csv')
     pc = PlotCsv(options)
     pc.run()
