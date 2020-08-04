@@ -22,7 +22,8 @@ class PlotCsv(object):
     def __init__(self, options):
         self.stats_history = pd.read_csv(options.stats_history, sep=',', header=0)
         self.stats_history['Timestamp'] = self.stats_history['Timestamp'].apply(timestamp_to_datetime)
-        if options.process is None:
+        self.options = options
+        if options.process is not None:
             self.process = pd.read_csv(options.process, sep=',', header=0)
             self.process['Timestamp'] = self.process['Timestamp'].apply(timestamp_to_datetime)
         else:
@@ -38,7 +39,7 @@ class PlotCsv(object):
         if len(df.index) > 10:
             ax.xaxis.set_major_locator(ticker.MultipleLocator(len(df.index) / 10))
         plt.setp(ax.get_xticklabels(), rotation=45)
-        plt.savefig(f'{options.image_prefix}_user.png')
+        plt.savefig(f'{self.options.image_prefix}_user.png')
 
     def plot_qps(self):
         df = self.stats_history
@@ -53,7 +54,7 @@ class PlotCsv(object):
         if len(df.index) > 10:
             ax.xaxis.set_major_locator(ticker.MultipleLocator(len(df.index) / 10))
         plt.setp(ax.get_xticklabels(), rotation=45)
-        plt.savefig(f'{options.image_prefix}_qps.png')
+        plt.savefig(f'{self.options.image_prefix}_qps.png')
 
     def plot_cpu(self):
         df = self.process
@@ -66,7 +67,7 @@ class PlotCsv(object):
             ax.xaxis.set_major_locator(ticker.MultipleLocator(len(df.index) / 100))
 
         plt.setp(ax.get_xticklabels(), rotation=45)
-        plt.savefig(f'{options.image_prefix}_cpu.png')
+        plt.savefig(f'{self.options.image_prefix}_cpu.png')
 
     def plot_memory(self):
         df = self.process
@@ -80,7 +81,7 @@ class PlotCsv(object):
             ax.xaxis.set_major_locator(ticker.MultipleLocator(len(df.index) / 100))
 
         plt.setp(ax.get_xticklabels(), rotation=45)
-        plt.savefig(f'{options.image_prefix}_memory.png')
+        plt.savefig(f'{self.options.image_prefix}_memory.png')
 
     def run(self):
         if self.process is not None:
@@ -91,6 +92,6 @@ class PlotCsv(object):
 
 
 if __name__ == '__main__':
-    options = create_options('../Chrome_stats_history.csv', '../test', '../Chrome_process.csv')
+    options = create_options('../AutoDetect_stats_history.csv', '../test', '../AutoDetect_process.csv')
     pc = PlotCsv(options)
     pc.run()

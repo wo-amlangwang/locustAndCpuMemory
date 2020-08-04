@@ -66,6 +66,11 @@ def run_process_monitor(process_monitor: ProcessMonitor, options):
     process_monitor.run(time_to_stop=options.collect_time_in_second)
     pass
 
+def get_image_prefix(args):
+    if args.process_name is None:
+        return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}{args.process_pid}'
+    else:
+        return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}{args.process_name}'
 
 if __name__ == '__main__':
     setup_logging('INFO')
@@ -96,6 +101,7 @@ if __name__ == '__main__':
     stats_history = f'{args.locust_csv_prefix}_stats_history.csv'
     if can_draw_process:
         process = get_default_process_monitor_csv_prefix(args.process_pid, args.process_name)
+    print(get_image_prefix(args))
     opt = create_options(stats_history=stats_history, process=process,
-                         image_prefix=f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}{args.process_name or args.process_pid}')
+                         image_prefix=get_image_prefix(args))
     PlotCsv(opt).run()
