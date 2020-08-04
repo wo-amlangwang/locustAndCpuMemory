@@ -7,7 +7,7 @@ from Utils.util import get_slash
 
 
 def timestamp_to_datetime(ts: int):
-    return datetime.utcfromtimestamp(ts).strftime('%H:%M:%S')
+    return datetime.fromtimestamp(ts).strftime('%H:%M:%S')
 
 
 def create_options(stats_history, image_prefix, process=None):
