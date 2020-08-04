@@ -10,7 +10,7 @@ def timestamp_to_datetime(ts: int):
     return datetime.utcfromtimestamp(ts).strftime('%H:%M:%S')
 
 
-def create_options(stats_history, image_prefix, process):
+def create_options(stats_history, image_prefix, process=None):
     opt = Namespace()
     opt.stats_history = stats_history
     opt.image_prefix = image_prefix
@@ -22,8 +22,11 @@ class PlotCsv(object):
     def __init__(self, options):
         self.stats_history = pd.read_csv(options.stats_history, sep=',', header=0)
         self.stats_history['Timestamp'] = self.stats_history['Timestamp'].apply(timestamp_to_datetime)
-        self.process = pd.read_csv(options.process, sep=',', header=0)
-        self.process['Timestamp'] = self.process['Timestamp'].apply(timestamp_to_datetime)
+        if options.process is None:
+            self.process = pd.read_csv(options.process, sep=',', header=0)
+            self.process['Timestamp'] = self.process['Timestamp'].apply(timestamp_to_datetime)
+        else:
+            self.process = None
 
     def plot_user_count(self):
         df = self.stats_history
@@ -34,7 +37,6 @@ class PlotCsv(object):
                ylabel="Users")
         if len(df.index) > 10:
             ax.xaxis.set_major_locator(ticker.MultipleLocator(len(df.index) / 10))
-
         plt.setp(ax.get_xticklabels(), rotation=45)
         plt.savefig(f'{options.image_prefix}_user.png')
 
@@ -81,10 +83,12 @@ class PlotCsv(object):
         plt.savefig(f'{options.image_prefix}_memory.png')
 
     def run(self):
-        self.plot_cpu()
+        if self.process is not None:
+            self.plot_cpu()
+            self.plot_memory()
         self.plot_user_count()
-        self.plot_memory()
         self.plot_qps()
+
 
 if __name__ == '__main__':
     options = create_options('../Chrome_stats_history.csv', '../test', '../Chrome_process.csv')

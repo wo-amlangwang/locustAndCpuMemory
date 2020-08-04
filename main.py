@@ -7,6 +7,8 @@ from Users.access_log_user import AccessLogUser
 from locust_runner import LocustRunner
 from process_monitor import ProcessMonitor
 from locust.log import setup_logging
+from Utils.plot import create_options
+from Utils.plot import PlotCsv
 
 
 def config_argument_parser():
@@ -70,6 +72,7 @@ if __name__ == '__main__':
     args = config_argument_parser()
     logger = logging.getLogger(__name__)
     locust_runner = LocustRunner(args.target_server_address, AccessLogUser)
+    can_draw_process = False
     try:
         process_monitor = ProcessMonitor(pid=args.process_pid,
                                          name=args.process_name,
@@ -77,6 +80,7 @@ if __name__ == '__main__':
                                                                                          args.process_name))
         process_monitor_task = threading.Thread(target=run_process_monitor, args=(process_monitor, args))
         process_monitor_task.start()
+        can_draw_process = True
     except:
         logger.warning('Cannot find target process')
         logger.warning('Will not run process monitor')
@@ -88,4 +92,10 @@ if __name__ == '__main__':
     if process_monitor_task is not None:
         process_monitor_task.join()
     logger.info("Load test done")
-
+    logger.info("Plotting..")
+    stats_history = f'{args.locust_csv_prefix}_stats_history.csv'
+    if can_draw_process:
+        process = get_default_process_monitor_csv_prefix(args.process_pid, args.process_name)
+    opt = create_options(stats_history=stats_history, process=process,
+                         image_prefix=f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}{args.process_name or args.process_pid}')
+    PlotCsv(opt).run()
