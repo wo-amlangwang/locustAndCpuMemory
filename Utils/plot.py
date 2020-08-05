@@ -65,7 +65,7 @@ class PlotCsv(object):
                ylabel="CPU Using rate")
         if len(df.index) > 10:
             ax.xaxis.set_major_locator(ticker.MultipleLocator(len(df.index) / 100))
-
+        ax.yaxis.set_major_formatter(ticker.PercentFormatter())
         plt.setp(ax.get_xticklabels(), rotation=45)
         plt.savefig(f'{self.options.image_prefix}_cpu.png')
 
