@@ -21,7 +21,7 @@ class LocustRunner:
 
     def run(self, user_count: int, hatch_rate: int, total_run_time: int, csv_prefix: str):
         self.env.runner.start(user_count, hatch_rate)
-        gevent.spawn(stats_writer, self.env, csv_prefix, False)
+        gevent.spawn(stats_writer, self.env, csv_prefix, True)
         gevent.spawn_later(total_run_time, lambda: self.env.runner.quit())
 
     def wait_runner(self):

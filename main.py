@@ -9,6 +9,7 @@ from process_monitor import ProcessMonitor
 from locust.log import setup_logging
 from Utils.plot import create_options
 from Utils.plot import PlotCsv
+from datetime import datetime
 
 
 def config_argument_parser():
@@ -36,14 +37,14 @@ def config_argument_parser():
 
 
 def get_default_locust_csv_prefix(process_name_or_pid):
-    return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}{process_name_or_pid}'
+    return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}Data{get_slash()}{data_time_str}_{process_name_or_pid}'
 
 
 def get_default_process_monitor_csv_prefix(name, pid):
     if name is None:
-        return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}{pid}_process.csv'
+        return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}Data{get_slash()}{data_time_str}_{pid}_process.csv'
     else:
-        return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}{name}_process.csv'
+        return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}Data{get_slash()}{data_time_str}_{name}_process.csv'
 
 
 def run_locust(locust_runner: LocustRunner, options):
@@ -66,14 +67,17 @@ def run_process_monitor(process_monitor: ProcessMonitor, options):
     process_monitor.run(time_to_stop=options.collect_time_in_second)
     pass
 
+
 def get_image_prefix(args):
     if args.process_name is None:
-        return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}{args.process_pid}'
+        return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}Data{get_slash()}{data_time_str}_{args.process_pid}'
     else:
-        return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}{args.process_name}'
+        return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}Data{get_slash()}{data_time_str}_{args.process_name}'
+
 
 if __name__ == '__main__':
     setup_logging('INFO')
+    data_time_str = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     args = config_argument_parser()
     logger = logging.getLogger(__name__)
     locust_runner = LocustRunner(args.target_server_address, AccessLogUser)

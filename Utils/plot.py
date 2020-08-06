@@ -42,13 +42,13 @@ class PlotCsv(object):
         plt.savefig(f'{self.options.image_prefix}_user.png')
 
     def plot_qps(self):
-        df = self.stats_history
+        df = self.stats_history[self.stats_history['Name'] == 'Aggregated']
         _, ax = plt.subplots(figsize=(10, 8))
         ax.plot(df['Timestamp'], df['Requests/s'], marker=',', label='Requests/s')
 
         ax.plot(df['Timestamp'], df['Failures/s'], marker=',', label='Failures/s')
         ax.legend(loc=1)
-        ax.set(title="RPS over time",
+        ax.set(title="RPS Over Time",
                xlabel="Time",
                ylabel="RPS")
         if len(df.index) > 10:
@@ -83,15 +83,47 @@ class PlotCsv(object):
         plt.setp(ax.get_xticklabels(), rotation=45)
         plt.savefig(f'{self.options.image_prefix}_memory.png')
 
+    def plot_threads_used(self):
+        df = self.process
+        _, ax = plt.subplots(figsize=(10, 8))
+        ax.plot(df['Timestamp'], df['Threads Number'], marker=',')
+        ax.set(title="Threads Count Over Time",
+               xlabel="Time",
+               ylabel="Threads number")
+        if len(df.index) > 10:
+            ax.xaxis.set_major_locator(ticker.MultipleLocator(len(df.index) / 100))
+        plt.setp(ax.get_xticklabels(), rotation=45)
+        plt.savefig(f'{self.options.image_prefix}_threads.png')
+
+    def plot_response_time(self):
+        df = self.stats_history[self.stats_history['Name'] == 'Aggregated']
+        _, ax = plt.subplots(figsize=(10, 8))
+        ax.plot(df['Timestamp'], df['Total Median Response Time'], marker=',', label='Total Median Response Time')
+
+        ax.plot(df['Timestamp'], df['95%'], marker=',', label='95%')
+        ax.legend(loc=1)
+        ax.set(title="Response Time Over Time",
+               xlabel="Time",
+               ylabel="Response Time")
+        if len(df.index) > 10:
+            ax.xaxis.set_major_locator(ticker.MultipleLocator(len(df.index) / 10))
+        plt.setp(ax.get_xticklabels(), rotation=45)
+        plt.savefig(f'{self.options.image_prefix}_response_time.png')
+
+
     def run(self):
         if self.process is not None:
             self.plot_cpu()
             self.plot_memory()
-        self.plot_user_count()
+        #self.plot_user_count()
         self.plot_qps()
+        self.plot_threads_used()
+        self.plot_response_time()
 
 
 if __name__ == '__main__':
-    options = create_options('../node_stats_history.csv', '../test', '../node_process.csv')
+    options = create_options('../Data/2020-08-06_11-04-38_AutoDetect_stats_history.csv',
+                             '../Data/test',
+                             '../Data/2020-08-06_11-04-38_AutoDetect_process.csv')
     pc = PlotCsv(options)
     pc.run()
