@@ -8,6 +8,7 @@ import logging
 
 logger = logger = logging.getLogger(__name__)
 
+
 def get_process_by_name(name: str):
     if name is None:
         return None
@@ -18,6 +19,7 @@ def get_process_by_name(name: str):
         if process.name().find(name) >= 0:
             result_process.append(process)
     return result_process
+
 
 def get_process_by_pid(pid: int):
     if pid is None:
@@ -59,7 +61,7 @@ class ProcessMonitor(object):
         if len(self.process) == 0:
             raise Exception("Process Not found.")
         for prodess in self.process:
-            logger.info(f'Found process {prodess.name()}')
+            logger.info(f'Found process {prodess.name()} with pid {prodess.pid}')
         logger.info(f'{len(self.process)} process found.')
         self.csv_file = csv_file
         self.message_queue = Queue()

@@ -107,7 +107,7 @@ if __name__ == '__main__':
         pass
     locust_task = threading.Thread(target=run_locust, args=(locust_runner, args))
     logger.info(f"Bring yourself a cup of coffee, this should done in {args.collect_time_in_second / 60} mins")
-    threading.Thread(target=tell_when_this_done, args=(args.collect_time_in_second,), daemon=True)
+    threading.Thread(target=tell_when_this_done, args=(args.collect_time_in_second,), daemon=True).start()
     locust_task.start()
     locust_task.join()
     if process_monitor_task is not None:
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     logger.info("Plotting..")
     stats_history = f'{args.locust_csv_prefix}_stats_history.csv'
     if can_draw_process:
-        process = get_default_process_monitor_csv_prefix(args.process_pid, args.process_name)
+        process = get_default_process_monitor_csv_prefix(args.process_pid, args.process_name, args.total_user)
     print(get_image_prefix(args))
     opt = create_options(stats_history=stats_history, process=process,
                          image_prefix=get_image_prefix(args))
