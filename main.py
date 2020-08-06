@@ -10,6 +10,7 @@ from locust.log import setup_logging
 from Utils.plot import create_options
 from Utils.plot import PlotCsv
 from datetime import datetime
+import time
 
 
 def config_argument_parser():
@@ -30,21 +31,21 @@ def config_argument_parser():
         parser.error('Target server address should  start with http://')
     if not arguments.locust_csv_prefix:
         if arguments.process_name is not None:
-            arguments.locust_csv_prefix = get_default_locust_csv_prefix(arguments.process_name)
+            arguments.locust_csv_prefix = get_default_locust_csv_prefix(arguments.process_name, arguments.total_user)
         else:
-            arguments.locust_csv_prefix = get_default_locust_csv_prefix(arguments.procsee_pid)
+            arguments.locust_csv_prefix = get_default_locust_csv_prefix(arguments.procsee_pid, arguments.total_user)
     return arguments
 
 
-def get_default_locust_csv_prefix(process_name_or_pid):
-    return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}Data{get_slash()}{data_time_str}_{process_name_or_pid}'
+def get_default_locust_csv_prefix(process_name_or_pid, user):
+    return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}Data{get_slash()}{data_time_str}_{user}_{process_name_or_pid}'
 
 
-def get_default_process_monitor_csv_prefix(name, pid):
+def get_default_process_monitor_csv_prefix(name, pid, user):
     if name is None:
-        return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}Data{get_slash()}{data_time_str}_{pid}_process.csv'
+        return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}Data{get_slash()}{data_time_str}_{user}_{pid}_process.csv'
     else:
-        return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}Data{get_slash()}{data_time_str}_{name}_process.csv'
+        return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}Data{get_slash()}{data_time_str}_{user}_{name}_process.csv'
 
 
 def run_locust(locust_runner: LocustRunner, options):
@@ -70,9 +71,17 @@ def run_process_monitor(process_monitor: ProcessMonitor, options):
 
 def get_image_prefix(args):
     if args.process_name is None:
-        return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}Data{get_slash()}{data_time_str}_{args.process_pid}'
+        return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}Data{get_slash()}{data_time_str}_{args.total_user}_{args.process_pid}'
     else:
-        return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}Data{get_slash()}{data_time_str}_{args.process_name}'
+        return f'{os.path.dirname(os.path.realpath(__file__))}{get_slash()}Data{get_slash()}{data_time_str}_{args.total_user}_{args.process_name}'
+
+
+def tell_when_this_done(total_monitor_time):
+    complete_part = 0
+    while True:
+        time.sleep(total_monitor_time / 10)
+        complete_part += 10
+        logger.info(f'{complete_part}% Done')
 
 
 if __name__ == '__main__':
@@ -86,7 +95,8 @@ if __name__ == '__main__':
         process_monitor = ProcessMonitor(pid=args.process_pid,
                                          name=args.process_name,
                                          csv_file=get_default_process_monitor_csv_prefix(args.process_pid,
-                                                                                         args.process_name))
+                                                                                         args.process_name,
+                                                                                         args.total_user))
         process_monitor_task = threading.Thread(target=run_process_monitor, args=(process_monitor, args))
         process_monitor_task.start()
         can_draw_process = True
@@ -96,6 +106,8 @@ if __name__ == '__main__':
         process_monitor_task = None
         pass
     locust_task = threading.Thread(target=run_locust, args=(locust_runner, args))
+    logger.info(f"Bring yourself a cup of coffee, this should done in {args.collect_time_in_second / 60} mins")
+    threading.Thread(target=tell_when_this_done, args=(args.collect_time_in_second,), daemon=True)
     locust_task.start()
     locust_task.join()
     if process_monitor_task is not None:
