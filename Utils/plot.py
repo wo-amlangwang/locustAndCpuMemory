@@ -110,6 +110,22 @@ class PlotCsv(object):
         plt.setp(ax.get_xticklabels(), rotation=45)
         plt.savefig(f'{self.options.image_prefix}_response_time.png')
 
+    def plot_tile(self):
+        df = self.stats_history[self.stats_history['Name'] == 'Aggregated']
+        _, ax = plt.subplots(figsize=(10, 8))
+        ax.plot(df['Timestamp'], df['99%'], marker=',', label='99%')
+        ax.plot(df['Timestamp'], df['95%'], marker=',', label='95%')
+        ax.plot(df['Timestamp'], df['90%'], marker=',', label='90%')
+        ax.plot(df['Timestamp'], df['80%'], marker=',', label='80%')
+        ax.plot(df['Timestamp'], df['50%'], marker=',', label='50%')
+        ax.legend(loc=1)
+        ax.set(title="Response Time Over Time",
+               xlabel="Time",
+               ylabel="Response Time")
+        if len(df.index) > 10:
+            ax.xaxis.set_major_locator(ticker.MultipleLocator(len(df.index) / 10))
+        plt.setp(ax.get_xticklabels(), rotation=45)
+        plt.savefig(f'{self.options.image_prefix}_tile.png')
 
     def run(self):
         if self.process is not None:
@@ -119,11 +135,12 @@ class PlotCsv(object):
         self.plot_qps()
         self.plot_threads_used()
         self.plot_response_time()
+        self.plot_tile()
 
 
 if __name__ == '__main__':
-    options = create_options('../Data/2020-08-06_11-04-38_AutoDetect_stats_history.csv',
-                             '../Data/test',
-                             '../Data/2020-08-06_11-04-38_AutoDetect_process.csv')
+    options = create_options('../Data/2020-08-06_15-32-50_50_node_stats_history.csv',
+                             '../Data/2020-08-06_15-32-50_50_node',
+                             '../Data/2020-08-06_15-32-50_50_node_process.csv')
     pc = PlotCsv(options)
-    pc.run()
+    pc.plot_tile()
