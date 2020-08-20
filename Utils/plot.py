@@ -10,12 +10,61 @@ def timestamp_to_datetime(ts: int):
     return datetime.fromtimestamp(ts).strftime('%H:%M:%S')
 
 
+def convert_timestamp(first_timestamp: int):
+    return lambda ts: ts - first_timestamp
+
+
 def create_options(stats_history, image_prefix, process=None):
     opt = Namespace()
     opt.stats_history = stats_history
     opt.image_prefix = image_prefix
     opt.process = process
     return opt
+
+
+class PlotPeerCsv(object):
+    def __init__(self, autodetect: str, node: str):
+        self.autodetect = pd.read_csv(autodetect, sep=',', header=0)
+        self.node = pd.read_csv(node, sep=',', header=0)
+        convert_fun = convert_timestamp(self.autodetect['Timestamp'].min())
+        self.autodetect['Timestamp'] = self.autodetect['Timestamp']\
+            .apply(convert_fun)
+        convert_fun = convert_timestamp(self.node['Timestamp'].min())
+        self.node['Timestamp'] = self.node['Timestamp']\
+            .apply(convert_fun)
+
+    def plot(self, column: str, xlabel: str, ylabel: str):
+        df_autodetect = self.autodetect[self.autodetect['Name'] == 'Aggregated']
+        df_node = self.node[self.node['Name'] == 'Aggregated']
+        _, ax = plt.subplots(figsize=(10, 8))
+
+        ax.plot(df_autodetect['Timestamp'], df_autodetect[column], marker=',', label=f'Dotnet {column}')
+        ax.plot(df_node['Timestamp'], df_node[column], marker=',', label=f'Node {column}')
+
+        ax.legend(loc=1)
+        ax.set(title=f"{column}",
+               xlabel=xlabel,
+               ylabel=ylabel)
+        if len(df_autodetect.index) > 10:
+            ax.xaxis.set_major_locator(ticker.MultipleLocator(len(df_autodetect.index) / 10))
+        plt.setp(ax.get_xticklabels(), rotation=45)
+        plt.show()
+        pass
+
+    def plot_80(self):
+        self.plot('80%', "Time", "Response Time", )
+
+    def plot_90(self):
+        self.plot('90%', "Time", "Response Time", )
+
+    def plot_95(self):
+        self.plot('95%', "Time", "Response Time", )
+
+    def plot_99(self):
+        self.plot('99%', "Time", "Response Time", )
+
+    def plot_median(self):
+        self.plot('Total Median Response Time', "Time", "Response Time", )
 
 
 class PlotCsv(object):
@@ -139,8 +188,19 @@ class PlotCsv(object):
 
 
 if __name__ == '__main__':
-    options = create_options('../Data/2020-08-06_15-32-50_50_node_stats_history.csv',
-                             '../Data/2020-08-06_15-32-50_50_node',
-                             '../Data/2020-08-06_15-32-50_50_node_process.csv')
-    pc = PlotCsv(options)
-    pc.plot_tile()
+    #options = create_options('../Data/2020-08-20_11-40-46_100_AutoDetect_stats_history.csv',
+    #                         '../Data/2020-08-20_11-40-46_100_AutoDetect',
+    #                         '../Data/2020-08-20_11-40-46_100_AutoDetect_process.csv')
+    #pc = PlotCsv(options)
+    #pc.run()
+    ps = PlotPeerCsv('../Data/2020-08-20_11-40-46_100_AutoDetect_stats_history.csv',
+                     '../Data/2020-08-06_16-07-42_100_node_stats_history.csv')
+    ps.plot_80()
+    ps.plot_90()
+    ps.plot_95()
+    ps.plot_99()
+    #ps.plot_median()
+    #2020-08-06_13-25-31_100_AutoDetect_stats_history.csv
+    #2020-08-06_16-07-42_100_node_stats_history.csv
+    pass
+
